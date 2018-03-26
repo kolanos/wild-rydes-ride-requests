@@ -35,7 +35,7 @@ provider:
 
 functions:
   RequestRide:
-    handler: handlers/request-ride.handler
+    handler: handlers/request_ride.handler
     description: "Request a ride.."
     memorySize: 128
     timeout: 30
@@ -65,7 +65,7 @@ functions:
 #          cors: true
 
   UpdateConfig:
-    handler: handlers/update-backend-config.handler
+    handler: handlers/update_backend_config.handler
     description: "Updates the backend location on the frontend."
     memorySize: 128
     timeout: 30
