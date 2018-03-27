@@ -5,10 +5,14 @@
 import datetime
 import json
 import os
+
+import boto3
+from moto import mock_dynamodb2, mock_sts
 import pytest
 
 # Need to ensure function environment settings are set before import
-os.environ['DYNAMODB_TABLE'] = 'test-db'
+DYNAMODB_TABLE = os.environ['DYNAMODB_TABLE'] = 'mock_test_request_ride'
+DYNAMODB_HASH_KEY = 'RideId'
 import handlers.request_ride as h
 
 
@@ -112,4 +116,31 @@ def test__get_ride(user, pickup_location, ride):
     assert 'Rider' in this_ride.keys()
     assert 'Eta' in this_ride.keys()
     assert 'RequestTime' in this_ride.keys()
+
+
+@mock_sts   # Let's us handle assumed roles.
+@mock_dynamodb2
+def test__record_ride(ride, ride_id):
+    '''Test recording a ride'''
+    ddb = boto3.client('dynamodb')
+    ddb.create_table(
+        TableName=DYNAMODB_TABLE,
+        KeySchema=[
+            {
+                'AttributeName': DYNAMODB_HASH_KEY,
+                'KeyType': 'HASH'
+            }
+        ],
+        AttributeDefinitions=[{'AttributeName': DYNAMODB_HASH_KEY,
+                               'AttributeType': 'S'}],
+        ProvisionedThroughput={'ReadCapacityUnits': 1,
+                               'WriteCapacityUnits': 1}
+    )
+
+    h._record_ride(ride)
+
+    this_item = ddb.get_item(TableName=DYNAMODB_TABLE,
+                             Key={DYNAMODB_HASH_KEY: {'S': ride_id}})
+
+    assert this_item.get('Item').get(DYNAMODB_HASH_KEY).get('S') == ride_id
 
