@@ -21,7 +21,9 @@ custom:
   # NOTE: Hack to handle fact that you can't use ImportValue in event.
 
   pythonRequirements:
-    dockerizePip: true
+    # if using pyenv, make sure virtualenv was initialized to create python3.6
+    # `pyenv virtualenv -p python3.6 <VERSION> <VIRTUALENV>`
+    dockerizePip: false
 
 
 provider:
@@ -35,7 +37,7 @@ provider:
 
 functions:
   RequestRide:
-    handler: handlers/request-ride.handler
+    handler: handlers/request_ride.handler
     description: "Request a ride.."
     memorySize: 128
     timeout: 30
@@ -65,7 +67,7 @@ functions:
 #          cors: true
 
   UpdateConfig:
-    handler: handlers/update-backend-config.handler
+    handler: handlers/update_backend_config.handler
     description: "Updates the backend location on the frontend."
     memorySize: 128
     timeout: 30

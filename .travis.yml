@@ -42,7 +42,11 @@ jobs:
         - aws configure set default.region $AWS_REGION
         - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID_DEV
         - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY_DEV
+        - pip install -r requirements-dev.txt
       script:
+        # Fixes strange failure. ref: https://github.com/travis-ci/travis-ci/issues/7940
+        - export BOTO_CONFIG=/dev/null
+        - pytest tests
         - sls package -v -r ${AWS_REGION}
       after_script:
         # Ensure our creds are cleaned up.

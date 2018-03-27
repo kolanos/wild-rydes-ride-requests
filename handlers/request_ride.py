@@ -42,17 +42,17 @@ def _get_ride(user, pickup_location):
     '''Get a ride.'''
     ride_id = ''.join(random.choice(string.digits + string.ascii_letters) for _ in range(16))
     unicorn = _get_unicorn()
-    ride_info = _record_ride(ride_id, user, unicorn)
     eta = _get_unicorn_eta(unicorn, pickup_location)
 
+    # NOTE: upstream they replace Rider with User but that seems silly.
     resp = {
         'RideId': ride_id,
         'Unicorn': unicorn,
         'UnicornName': unicorn.get('Name'),
         'Eta': '{} Seconds'.format(eta),
         'Rider': user,
+        'RequestTime': str(datetime.datetime.now()),
     }
-
     return resp
 
 
@@ -81,25 +81,16 @@ def _get_authorizer_from_event(event):
 
 def _get_user_from_authorizer(authorizer):
     '''Get username from authentication provider'''
-    return authorizer.get('cognito:username')
+    return authorizer.get('claims').get('cognito:username')
 
 
-def _record_ride(ride_id, user, unicorn):
+def _record_ride(ride_item):
     '''Record a ride.'''
-    item = {
-        'RideId': ride_id,
-        'User': user,
-        'Unicorn': unicorn,
-        'UnicornName': unicorn.get('Name'),
-        'RequestTime': str(datetime.datetime.now()),
-    }
-
-    ddt.put_item(
+    resp = ddt.put_item(
         TableName=DYNAMODB_TABLE,
-        Item=item
+        Item=ride_item
     )
-
-    return item
+    _logger.debug('_record_ride({}) -> {}'.format(ride_item, resp))
 
 
 def handler(event, context):
@@ -121,6 +112,7 @@ def handler(event, context):
         body = json.loads(event.get('body'))
         pickup_location = _get_pickup_location(body)
         ride_resp = _get_ride(user, pickup_location)
+        _record_ride(ride_resp)
 
         resp = {
             'statusCode': 201,
