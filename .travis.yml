@@ -42,7 +42,9 @@ jobs:
         - aws configure set default.region $AWS_REGION
         - aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID_DEV
         - aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY_DEV
+        - pip install -r requirements-dev.txt
       script:
+        - pytest tests
         - sls package -v -r ${AWS_REGION}
       after_script:
         # Ensure our creds are cleaned up.
