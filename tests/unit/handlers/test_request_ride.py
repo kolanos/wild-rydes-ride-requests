@@ -13,7 +13,7 @@ import pytest
 # Need to ensure function environment settings are set before import
 DYNAMODB_TABLE = os.environ['DYNAMODB_TABLE'] = 'mock_test_request_ride'
 DYNAMODB_HASH_KEY = 'RideId'
-import handlers.request_ride as h
+import handlers.request_ride as h # noqa
 
 
 EVENT_FILE = os.path.join(
