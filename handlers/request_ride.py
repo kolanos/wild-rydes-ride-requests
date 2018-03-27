@@ -81,7 +81,7 @@ def _get_authorizer_from_event(event):
 
 def _get_user_from_authorizer(authorizer):
     '''Get username from authentication provider'''
-    return authorizer.get('cognito:username')
+    return authorizer.get('claims').get('cognito:username')
 
 
 def _record_ride(ride_item):
