@@ -53,7 +53,6 @@ def _get_ride(user, pickup_location):
         'Rider': user,
         'RequestTime': str(datetime.datetime.now()),
     }
-    _record_ride(resp)
     return resp
 
 
@@ -113,6 +112,7 @@ def handler(event, context):
         body = json.loads(event.get('body'))
         pickup_location = _get_pickup_location(body)
         ride_resp = _get_ride(user, pickup_location)
+        _record_ride(ride_resp)
 
         resp = {
             'statusCode': 201,
