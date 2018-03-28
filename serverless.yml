@@ -20,6 +20,7 @@ custom:
 
   iopipe_token: "${env:IOPIPE_TOKEN, ''}"
   iopipe_profiler_enabled: "${env:IOPIPE_PROFILER_ENABLED, 'false'}"
+  iopipe_tracing_enabled: "${env:IOPIPE_TRACING_ENABLED, 'false'}"
 
   pythonRequirements:
     # if using pyenv, make sure virtualenv was initialized to create python3.6
@@ -36,6 +37,7 @@ provider:
     LOG_LEVEL: ${self:custom.log_level}
     IOPIPE_TOKEN: '${self:custom.iopipe_token}'
     IOPIPE_PROFILER_ENABLED: '${self:custom.iopipe_profiler_enabled}'
+    IOPIPE_TRACING_ENABLED: '${self:custom.iopipe_tracing_enabled}'
 
 
 functions:
