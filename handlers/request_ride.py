@@ -8,10 +8,23 @@ import random
 import string
 
 import boto3
+from iopipe.iopipe import IOpipe
+from iopipe.contrib.profiler import ProfilerPlugin
+from iopipe.contrib.trace import TracePlugin
 
+# logging
 log_level = os.environ.get('LOG_LEVEL', 'INFO')
 logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
 _logger = logging.getLogger(__name__)
+
+# IOpipe
+iopipe_profiler_enabled = os.environ.get('IOPIPE_PROFILER_ENABLED', '').lower() == 'true'
+iopipe_profiler_plugin = ProfilerPlugin(enabled=iopipe_profiler_enabled)
+iopipe_tracing_plugin = TracePlugin(auto_measure=True)
+
+iopipe_token = os.environ.get('IOPIPE_TOKEN') or None
+iopipe = IOpipe(iopipe_token,
+                plugins=[iopipe_profiler_plugin, iopipe_tracing_plugin])
 
 # DynamoDB
 DYNAMODB_TABLE = os.environ.get('DYNAMODB_TABLE')
@@ -93,6 +106,7 @@ def _record_ride(ride_item):
     _logger.debug('_record_ride({}) -> {}'.format(ride_item, resp))
 
 
+@iopipe
 def handler(event, context):
     '''Function entry'''
     _logger.debug('Request: {}'.format(json.dumps(event)))
