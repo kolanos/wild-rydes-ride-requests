@@ -49,7 +49,7 @@ jobs:
       script:
         # Fixes strange failure. ref: https://github.com/travis-ci/travis-ci/issues/7940
         - export BOTO_CONFIG=/dev/null
-        - pytest tests/unit
+        - pytest -v tests/unit
         - sls package -v -r ${AWS_REGION}
       after_script:
         # Ensure our creds are cleaned up.
@@ -111,7 +111,7 @@ jobs:
         - pip install -r requirements.txt
         - pip install -r requirements-dev.txt
       script:
-        - pytest tests/integration
+        - pytest -v tests/integration
       after_script:
         # Ensure our creds are cleaned up.
         - rm -rf ~/.aws
