@@ -8,6 +8,7 @@ import random
 import string
 
 import boto3
+from botocore.vendored import requests
 
 if os.environ.get('XRAY_ENABLED', '').lower() == 'true':
     from aws_xray_sdk.core import xray_recorder
@@ -65,6 +66,15 @@ FLEET = [
     },
 
 ]
+
+# Testing promo feature
+PROMO_DISCOUNT_ENDPOINT = os.environ.get('PROMO_DISCOUNT_ENDPOINT')
+
+
+def _get_ride_discount(user, pickup_location, url=PROMO_DISCOUNT_ENDPOINT):
+    '''Check promo service for a discount multiplier'''
+    resp = requests.post(url, json={'User': user, 'PickupLocation': pickup_location})
+    return resp.json().get('DiscountMultiplier')
 
 
 def _get_ride(user, pickup_location):
@@ -148,6 +158,11 @@ def handler(event, context):
         body = json.loads(event.get('body'))
         pickup_location = _get_pickup_location(body)
         ride_resp = _get_ride(user, pickup_location)
+
+        # Note: testing discount feature:
+        discount_multiplier = _get_ride_discount(user, pickup_location)
+        ride_resp['DiscountMultiplier'] = discount_multiplier
+
         _record_ride(ride_resp)
 
         resp = {
