@@ -5,6 +5,7 @@ service: wild-rydes-ride-requests
 plugins:
   - serverless-python-requirements
   - serverless-iam-roles-per-function
+  - serverless-plugin-tracing
   # - serverless-apigateway-plugin
 
 custom:
@@ -41,7 +42,7 @@ provider:
     IOPIPE_PROFILER_ENABLED: '${self:custom.iopipe_profiler_enabled}'
     IOPIPE_TRACING_ENABLED: '${self:custom.iopipe_tracing_enabled}'
     XRAY_ENABLED: '${self:custom.xray_enabled}'
-
+  tracing: '${self:custom.xray_enabled}'
 
 functions:
   RequestRide:
