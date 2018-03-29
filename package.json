@@ -6,6 +6,7 @@
   "devDependencies": {
     "serverless-apigateway-plugin": "0.0.6",
     "serverless-iam-roles-per-function": "^0.1.5",
+    "serverless-plugin-tracing": "^2.0.0",
     "serverless-python-requirements": "^3.3.1"
   }
 }
