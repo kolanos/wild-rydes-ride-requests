@@ -119,8 +119,8 @@ def handler(event, context):
 
     # IOpipe state.
     for plugin in iopipe.plugins:
-        if plugin['enabled']:
-            _logger.info('iopipe %s plugin enabled' % plugin['name'])
+        if plugin.enabled:
+            _logger.info('iopipe %s plugin enabled' % plugin.name)
 
     authorizer = _get_authorizer_from_event(event)
     if authorizer is None:
