@@ -13,7 +13,7 @@ if os.environ.get('XRAY_ENABLED', '').lower() == 'true':
     from aws_xray_sdk.core import xray_recorder
     from aws_xray_sdk.core import patch_all
 
-from iopipe.iopipe import IOpipe
+from iopipe import IOpipe
 from iopipe.contrib.profiler import ProfilerPlugin
 from iopipe.contrib.trace import TracePlugin
 
@@ -27,20 +27,7 @@ logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
 _logger = logging.getLogger(__name__)
 
 # IOpipe
-iopipe_plugins = []
-
-iopipe_profiler_enabled = os.environ.get('IOPIPE_PROFILER_ENABLED', '').lower() == 'true'
-if iopipe_profiler_enabled:
-    iopipe_profiler_plugin = ProfilerPlugin(enabled=True)
-    iopipe_plugins.append(iopipe_profiler_plugin)
-
-iopipe_tracing_enabled = os.environ.get('IOPIPE_TRACING_ENABLED', '').lower() == 'true'
-if iopipe_tracing_enabled:
-    iopipe_tracing_plugin = TracePlugin(auto_measure=True)
-    iopipe_plugins.append(iopipe_tracing_plugin)
-
-iopipe_token = os.environ.get('IOPIPE_TOKEN') or None
-iopipe = IOpipe(iopipe_token, plugins=iopipe_plugins)
+iopipe = IOpipe(plugins=[ProfilerPlugin(), TracePlugin(automeasure=True)])
 
 # DynamoDB
 DYNAMODB_TABLE = os.environ.get('DYNAMODB_TABLE')
@@ -125,13 +112,15 @@ def _record_ride(ride_item):
 @iopipe
 def handler(event, context):
     '''Function entry'''
+
+    context.iopipe.mark.start('request_ride')
+
     _logger.debug('Request: {}'.format(json.dumps(event)))
 
     # IOpipe state.
-    if iopipe_tracing_enabled:
-        _logger.info('iopipe_tracing_enabled: {}'.format(str(iopipe_tracing_enabled)))
-    if iopipe_profiler_enabled:
-        _logger.info('iopipe_profiler_enabled: {}'.format(str(iopipe_profiler_enabled)))
+    for plugin in iopipe.plugins:
+        if plugin['enabled']:
+            _logger.info('iopipe %s plugin enabled' % plugin['name'])
 
     authorizer = _get_authorizer_from_event(event)
     if authorizer is None:
@@ -144,11 +133,19 @@ def handler(event, context):
         }
 
     else:
-        user = _get_user_from_authorizer(authorizer)
+        with context.iopipe.mark('get_user_from_authorizer'):
+            user = _get_user_from_authorizer(authorizer)
+
         body = json.loads(event.get('body'))
-        pickup_location = _get_pickup_location(body)
-        ride_resp = _get_ride(user, pickup_location)
-        _record_ride(ride_resp)
+
+        with context.iopipe.mark('get_pickup_location'):
+            pickup_location = _get_pickup_location(body)
+
+        with context.iopipe.mark('get_ride'):
+            ride_resp = _get_ride(user, pickup_location)
+
+        with context.iopipe.mark('record_ride'):
+            _record_ride(ride_resp)
 
         resp = {
             'statusCode': 201,
@@ -157,6 +154,6 @@ def handler(event, context):
                 "Access-Control-Allow-Origin": "*",
             }
         }
+    context.iopipe.mark.end('request_ride')
 
     return resp
-
