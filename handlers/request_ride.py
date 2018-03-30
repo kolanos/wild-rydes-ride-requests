@@ -27,7 +27,7 @@ logging.root.setLevel(logging.getLevelName(log_level))  # type:ignore
 _logger = logging.getLogger(__name__)
 
 # IOpipe
-iopipe = IOpipe(plugins=[ProfilerPlugin(), TracePlugin(automeasure=True)])
+iopipe = IOpipe(plugins=[ProfilerPlugin(), TracePlugin(auto_measure=True)])
 
 # DynamoDB
 DYNAMODB_TABLE = os.environ.get('DYNAMODB_TABLE')
